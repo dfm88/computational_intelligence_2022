@@ -10,7 +10,7 @@ from typing import Iterable
 
 import numpy as np
 
-from ci_2022.utils.gx_utils import PriorityQueue
+from utils.gx_utils import PriorityQueue
 
 sys.path.append(".")
 
