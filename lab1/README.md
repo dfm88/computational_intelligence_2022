@@ -3,12 +3,14 @@
 ### Setup environment
 
 * Using **Poetry**
+
 From the root execute the following commands
 ```shell
 poetry shell && poetry install
 ```
 
 * Using **pip**
+
 From the root, after creating and activating the virtual environment, execute the following comand
 ```shell
 pip install .
