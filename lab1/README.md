@@ -1,5 +1,21 @@
 ## Lab 01
 
+### Setup environment
+
+* Using **Poetry**
+From the root execute the following commands
+```shell
+poetry shell && poetry install
+```
+
+* Using **pip**
+From the root, after creating and activating the virtual environment, execute the following comand
+```shell
+pip install .
+```
+
+### Run the script
+
 To run the solution run the file `ci_2022/lab1/lab1.py`.
 
 I decided to implement the **A\*** strategy to approach the problem.
