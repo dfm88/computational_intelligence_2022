@@ -6,7 +6,8 @@
 
 From the root execute the following commands
 ```shell
-poetry shell && poetry install
+poetry shell
+poetry install
 ```
 
 * Using **pip**
