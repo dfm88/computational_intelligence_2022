@@ -19,7 +19,7 @@ pip install .
 
 ### Run the script
 
-To run the solution run the file `ci_2022/lab1/lab1.py`.
+To run the solution run the file lab1/lab1.py`.
 
 I decided to implement the **A\*** strategy to approach the problem.
 The `lab1.py` file contains tow main classes `StateLab1` and `SearchLab1`.
