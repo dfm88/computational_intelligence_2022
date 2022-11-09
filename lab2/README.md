@@ -57,23 +57,23 @@ weight = -10
 **N=20**
 ```py
 completeness = 20
-weight = -23
+weight = -24
 ```
 
 **N=100**
 ```py
 completeness = 100
-weight = -214
+weight = -207
 ```
 
 **N=500**
 ```py
 completeness = 500
-weight = -29901
+weight = -1583
 ```
 
 **N=1000**
 ```py
 completeness = 1000
-weight = -269472
+weight = -3973
 ```

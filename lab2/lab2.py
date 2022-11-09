@@ -61,7 +61,7 @@ def generate_population(all_lists: list[set[int]]) -> list[Individual]:
     # generates a len(POPULATION_SIZE) of individuals, each long
     # len(PROBLEM_SIZE) and evaluates its fitness
     for _ in range(POPULATION_SIZE):
-        genome = tuple((random.choice([True, False]) for _ in range(PROBLEM_SIZE)))
+        genome = tuple(False for _ in range(PROBLEM_SIZE))
         genome = validate_and_mutate(
             genome=genome,
         )
@@ -145,7 +145,7 @@ def problem(N=5, seed=42) -> list[set[int]]:
 
 
 if __name__ == "__main__":
-    N = 10
+    N = 5
     all_lists = problem(N=N)
     PROBLEM_SIZE = len(all_lists)
     POPULATION_SIZE = 600
