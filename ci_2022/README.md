@@ -7,4 +7,4 @@
  
 ### lab2 
  
-* https://github.com/md131376st/computational-intelligen-2022.git 
+* https://github.com/md131376st/computational-intelligen-2022/issues/2
