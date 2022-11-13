@@ -136,15 +136,18 @@ def validate_and_mutate(
 
 
 def problem(N=5, seed=42) -> list[set[int]]:
+    state = random.getstate()
     random.seed(seed)
-    return tuple(
+    problem = tuple(
         frozenset(random.randint(0, N - 1) for n in range(random.randint(N // 5, N // 2)))
         for _ in range(random.randint(N, N * 5))
     )
+    random.setstate(state=state)
+    return problem
 
 
 if __name__ == "__main__":
-    N = 5
+    N = 500
     all_lists = problem(N=N)
     PROBLEM_SIZE = len(all_lists)
     POPULATION_SIZE = 600
