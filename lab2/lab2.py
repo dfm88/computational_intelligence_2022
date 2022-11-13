@@ -115,7 +115,6 @@ def mutation(genome: tuple[bool], n_genes: int = None) -> tuple[bool]:
     return new_genome
 
 
-@functools.lru_cache(512)
 def validate_and_mutate(
     genome: tuple[bool],
     nr_genes: int = 1
@@ -153,9 +152,10 @@ if __name__ == "__main__":
     NUM_GENERATIONS = 1000
 
     population = generate_population(all_lists=all_lists)
-
+    total_generations = 0
     for g in range(NUM_GENERATIONS):
         offspring = list()
+        total_generations += 1
         for i in range(OFFSPRING_SIZE):
             if random.random() > 0.2:
                 p = tournament(population, tournament_size=2)
@@ -172,7 +172,10 @@ if __name__ == "__main__":
         population = sorted(population, key=lambda i: i.fitness, reverse=True)[
             :POPULATION_SIZE
         ]
+        # break if already found the best solution
+        if population[0].fitness == (N, -N):
+            break
 
     print('f', population[0].fitness)
+    print(f'Found best solution in {total_generations} over {NUM_GENERATIONS} generations')
     print(get_fitness.cache_info())
-    print(validate_and_mutate.cache_info())
