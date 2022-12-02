@@ -51,7 +51,7 @@ def get_fitness(genome: tuple[bool], all_lists: list[set[int]], N) -> tuple[int]
     solution_completeness = len(
         functools.reduce(lambda x, y: x if len(x) >= N else x | y, genome_solution)
     )
-    result = (solution_completeness, - weight)
+    result = (solution_completeness, -weight)
     return result
 
 
@@ -104,21 +104,18 @@ def mutation(genome: tuple[bool], n_genes: int = None) -> tuple[bool]:
         n_genes = math.ceil(0.3 * max_range)
 
     if n_genes > max_range:
-        raise ValueError('Nr of genes greater than genome length')
+        raise ValueError("Nr of genes greater than genome length")
 
     indexes_to_flip = random.sample(range(0, max_range), n_genes)
     new_genome = tuple()
     for gene in indexes_to_flip:
-        new_genome = genome[:gene] + (not genome[gene],) + genome[gene + 1:]
+        new_genome = genome[:gene] + (not genome[gene],) + genome[gene + 1 :]
         genome = new_genome
 
     return new_genome
 
 
-def validate_and_mutate(
-    genome: tuple[bool],
-    nr_genes: int = 1
-) -> list[bool]:
+def validate_and_mutate(genome: tuple[bool], nr_genes: int = 1) -> list[bool]:
     """If genome has all values as False, mutate
     a `nr_genes` genes in genome
 
@@ -128,10 +125,7 @@ def validate_and_mutate(
 
     # if not True value in genome
     if not any(genome):
-        genome = mutation(
-            genome,
-            n_genes=nr_genes
-        )
+        genome = mutation(genome, n_genes=nr_genes)
     return genome
 
 
@@ -139,7 +133,9 @@ def problem(N=5, seed=42) -> list[set[int]]:
     state = random.getstate()
     random.seed(seed)
     problem = tuple(
-        frozenset(random.randint(0, N - 1) for n in range(random.randint(N // 5, N // 2)))
+        frozenset(
+            random.randint(0, N - 1) for n in range(random.randint(N // 5, N // 2))
+        )
         for _ in range(random.randint(N, N * 5))
     )
     random.setstate(state=state)
@@ -179,6 +175,8 @@ if __name__ == "__main__":
         if population[0].fitness == (N, -N):
             break
 
-    print('f', population[0].fitness)
-    print(f'Found best solution in {total_generations} over {NUM_GENERATIONS} generations')
+    print("f", population[0].fitness)
+    print(
+        f"Found best solution in {total_generations} over {NUM_GENERATIONS} generations"
+    )
     print(get_fitness.cache_info())

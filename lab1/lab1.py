@@ -1,5 +1,6 @@
 import random
 import sys
+
 sys.path.append(".")  # noqa
 
 from dataclasses import dataclass, field  # noqa
@@ -15,7 +16,9 @@ logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 def problem(N=5, seed=42):
     random.seed(seed)
     return [
-        list(set(random.randint(0, N - 1) for n in range(random.randint(N // 5, N // 2))))
+        list(
+            set(random.randint(0, N - 1) for n in range(random.randint(N // 5, N // 2)))
+        )
         for n in range(random.randint(N, N * 5))
     ]
 
@@ -27,7 +30,7 @@ class StateLab1(State):
             self.history = []
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}>: {self._data}'
+        return f"<{self.__class__.__name__}>: {self._data}"
 
     def update_history(self, state):
         self.history.append(state.data)
@@ -43,7 +46,8 @@ class SearchLab1(Search):
     def __post_init__(self):
         if not self.all_lists:
             self.all_lists = [
-                StateLab1(data=set(el)) for el in sorted(problem(N=self.N, seed=42), key=lambda l: len(l))
+                StateLab1(data=set(el))
+                for el in sorted(problem(N=self.N, seed=42), key=lambda l: len(l))
             ]
 
     def _actions_from_state(self, *args, **kwargs) -> Iterable:
@@ -94,14 +98,21 @@ class SearchLab1(Search):
                     self.parent_state[new_state] = state
                     self.state_cost[new_state] = self.state_cost[state] + cost
                     self.frontier.push(new_state, p=self._priority_function(new_state))
-                    logging.debug(f"Added new node to frontier (cost={self.state_cost[new_state]})")
-                elif new_state in self.frontier and self.state_cost[new_state] > self.state_cost[state] + cost:
+                    logging.debug(
+                        f"Added new node to frontier (cost={self.state_cost[new_state]})"
+                    )
+                elif (
+                    new_state in self.frontier
+                    and self.state_cost[new_state] > self.state_cost[state] + cost
+                ):
                     old_cost = self.state_cost[new_state]
                     self.parent_state[new_state] = state
                     self.state_cost[new_state] = self.state_cost[state] + cost
-                    logging.debug(f"Updated node cost in frontier: {old_cost} -> {self.state_cost[new_state]}")
+                    logging.debug(
+                        f"Updated node cost in frontier: {old_cost} -> {self.state_cost[new_state]}"
+                    )
                 else:
-                    logging.debug(f'skipping state {new_state}')
+                    logging.debug(f"skipping state {new_state}")
             if self.frontier:
                 state = self.frontier.pop()
             else:
@@ -116,7 +127,7 @@ class SearchLab1(Search):
             s = self.parent_state[s]
 
         weight = sum(len(_) for _ in path)
-        bloat = ((sum(len(_) for _ in path)-self.N)/self.N*100)
+        bloat = (sum(len(_) for _ in path) - self.N) / self.N * 100
 
         print(
             f"Found a solution in {len(path)} steps; \
@@ -127,20 +138,20 @@ class SearchLab1(Search):
         print(path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     N_ = 5
     goal_state = StateLab1(set(range(N_)))
-    all_lists = [StateLab1(data=set(el)) for el in sorted(problem(N=N_, seed=42), key=lambda l: len(l))]
+    all_lists = [
+        StateLab1(data=set(el))
+        for el in sorted(problem(N=N_, seed=42), key=lambda l: len(l))
+    ]
 
     initial_state = StateLab1(
         data=set(),
     )
 
     search_lab1 = SearchLab1(
-        N=N_,
-        initial_state=initial_state,
-        goal=goal_state,
-        all_lists=all_lists
+        N=N_, initial_state=initial_state, goal=goal_state, all_lists=all_lists
     )
 
     search_lab1.search()

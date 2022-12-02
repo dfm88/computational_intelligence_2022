@@ -18,7 +18,7 @@ sys.path.append(".")
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
 
-class State():
+class State:
     def __init__(self, data: np.ndarray):
         self._data = data.copy()
         self._data.flags.writeable = False
@@ -126,12 +126,19 @@ class Search(ABC):
                     parent_state[new_state] = state
                     state_cost[new_state] = state_cost[state] + cost
                     self.frontier.push(new_state, p=self._priority_function(new_state))
-                    logging.debug(f"Added new node to frontier (cost={state_cost[new_state]})")
-                elif new_state in self.frontier and state_cost[new_state] > state_cost[state] + cost:
+                    logging.debug(
+                        f"Added new node to frontier (cost={state_cost[new_state]})"
+                    )
+                elif (
+                    new_state in self.frontier
+                    and state_cost[new_state] > state_cost[state] + cost
+                ):
                     old_cost = state_cost[new_state]
                     parent_state[new_state] = state
                     state_cost[new_state] = state_cost[state] + cost
-                    logging.debug(f"Updated node cost in frontier: {old_cost} -> {state_cost[new_state]}")
+                    logging.debug(
+                        f"Updated node cost in frontier: {old_cost} -> {state_cost[new_state]}"
+                    )
             if self.frontier:
                 state = self.frontier.pop()
             else:
@@ -143,7 +150,9 @@ class Search(ABC):
             path.append(s.copy_data())
             s = self.parent_state[s]
 
-        logging.info(f"Found a solution in {len(path):,} steps; visited {len(self.state_cost):,} states")
+        logging.info(
+            f"Found a solution in {len(path):,} steps; visited {len(self.state_cost):,} states"
+        )
         res = list(reversed(path))
         logging.info(f"{res}")
         return res
