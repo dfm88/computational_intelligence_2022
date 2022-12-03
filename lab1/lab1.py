@@ -3,12 +3,11 @@ import sys
 
 sys.path.append(".")  # noqa
 
+import logging  # noqa
 from dataclasses import dataclass, field  # noqa
 from typing import Iterable  # noqa
-import logging  # noqa
 
 from utils.base_search import Search, State  # noqa
-
 
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
