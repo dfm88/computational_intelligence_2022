@@ -8,6 +8,8 @@ from itertools import accumulate
 from operator import and_, xor
 from typing import Callable, NamedTuple
 
+logging.getLogger().setLevel(logging.DEBUG)
+
 
 class Nimply(NamedTuple):
     row: int  # row index
@@ -136,6 +138,7 @@ class BaseStrategies(AbstractClass):
 @dataclass
 class Player0Strategies(BaseStrategies):
     """Possible hard coded strategies of our player"""
+
     def take_k_from_odd_row_strategy(self, state: Nim) -> Nimply:
         data = cook_status(state)
         return next(
@@ -268,9 +271,23 @@ def evaluate(
     strategy_p1: Callable,
     NUM_MATCHES: int,
     NIM_SIZE: int,
-    k: int = None,
-) -> int:
-    """Evaluates a strategy"""
+    k: int,
+) -> tuple[int, float]:
+    """Evaluates a strategy
+
+    Args:
+        strategy_p0 (Callable): strategy of player 0 (human)
+        strategy_p1 (Callable): strategy of player 1 (AI)
+        NUM_MATCHES (int): nr of matches to play
+        NIM_SIZE (int): size of nim board
+        k (int): upper bound on nr. of objects to remove from a Nim row.
+
+    Returns:
+        tuple[int, float]: (
+            nr of win from human player, win rate of human player
+        )
+    """
+
     # if optimal strategy starts first, will certainly win
     opponent = (strategy_p0, strategy_p1)
     won = 0
@@ -286,26 +303,59 @@ def evaluate(
             player = 1 - player
         if player == 1:
             won += 1
-    return won
+    return (won, won / NUM_MATCHES)
 
 
-# def make_strategy(genome: dict) -> Callable:
-#     def evolvable(state: Nim) -> Nimply:
-#         """Evolvable strategy because changing the value of probability 'p'
-#         of taking a decision with respect to the other, changes the behavior"""
-#         # get the high level interpretation of board
-#         data = cook_status(state)
-#         # random choice for taking elements from the longest or shorter row
-#         if random.random() < genome["p"]:
-#             ply = Nimply(
-#                 data["shortest_row"],
-#                 random.randint(1, state.rows[data["shortest_row"]]),
-#             )
-#         else:
-#             ply = Nimply(
-#                 data["longest_row"], random.randint(1, state.rows[data["longest_row"]])
-#             )
+def play_nim(
+    num_matches: int,
+    nim_size: int,
+    k: int,
+    p0_strategies_list: list[Callable],
+    p1_strategy: Callable,
+) -> float:
+    """Plays Nim
 
-#         return ply
+    Args:
+        num_matches (int)
+        nim_size (int): size of Nim board
+        k (int): upper bound to objects to take from a row
+        p0_strategies_list (list[Callable]): list of strategies of player 0 (human)
+        p1_strategy (Callable): strategy of player 1 (AI)
 
-#     return evolvable
+    Returns:
+        float: win rate of player 0 (human)
+    """
+
+    statistics_list = list()
+
+    for strategy in p0_strategies_list:
+        logging.debug(f"Using strategy {strategy.__name__} vs {p1_strategy.__name__}")
+
+        won_by_player_0, win_rate_player_0 = evaluate(
+            strategy_p0=strategy,
+            strategy_p1=p1_strategy,
+            NUM_MATCHES=num_matches,
+            NIM_SIZE=nim_size,
+            k=k,
+        )
+
+        won_by_player_1 = num_matches - won_by_player_0
+
+        statistics_list.append(
+            Statistics(
+                strategy_name=strategy.__name__,
+                nr_wins_player0=won_by_player_0,
+                nr_wins_player1=won_by_player_1,
+                win_rate_player0=win_rate_player_0,
+            )
+        )
+
+    for stat in statistics_list:
+        logging.info(
+            f"\nNUM MATCHES={num_matches}, K={k}, using '{stat.strategy_name}' vs '{p1_strategy.__name__}':\n"
+            f"Nr wins Player 0: {stat.nr_wins_player0} |\n"
+            f"Nr wins Player 1: {stat.nr_wins_player1} |\n"
+            f"Win Rate plyer 0 {stat.win_rate_player0} |\n\n"
+        )
+
+    return win_rate_player_0
