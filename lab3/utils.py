@@ -9,6 +9,10 @@ from operator import and_, xor
 from typing import Callable, NamedTuple
 
 logging.getLogger().setLevel(logging.DEBUG)
+# logging.basicConfig(
+#     level=logging.DEBUG,
+#     handlers=[logging.FileHandler("debug.log"), logging.StreamHandler()],
+# )
 
 
 class Nimply(NamedTuple):
@@ -17,7 +21,8 @@ class Nimply(NamedTuple):
 
 
 class Statistics(NamedTuple):
-    strategy_name: str
+    strategy_p0_name: str
+    strategy_p1_name: str
     nr_wins_player0: int
     nr_wins_player1: int
     win_rate_player0: float
@@ -295,11 +300,11 @@ def evaluate(
     for m in range(NUM_MATCHES):
         nim = Nim(NIM_SIZE, k=k)
         player = 0
-        logging.debug(f"status: Initial board game {m+1} -> {nim}")
+        # logging.debug(f"status: Initial board game {m+1} -> {nim}")
         while nim:
             ply = opponent[player](nim)
             nim.nimming(ply)
-            logging.debug(f"status: After player {player} -> {nim}")
+            # logging.debug(f"status: After player {player} -> {nim}")
             player = 1 - player
         if player == 1:
             won += 1
@@ -310,52 +315,48 @@ def play_nim(
     num_matches: int,
     nim_size: int,
     k: int,
-    p0_strategies_list: list[Callable],
+    p0_strategy: Callable,
     p1_strategy: Callable,
-) -> float:
+) -> Statistics:
     """Plays Nim
 
     Args:
         num_matches (int)
         nim_size (int): size of Nim board
         k (int): upper bound to objects to take from a row
-        p0_strategies_list (list[Callable]): list of strategies of player 0 (human)
+        p0_strategy (Callable): strategy of player 0 (human)
         p1_strategy (Callable): strategy of player 1 (AI)
 
     Returns:
-        float: win rate of player 0 (human)
+        Statistics: containing match infos
     """
 
-    statistics_list = list()
+    logging.debug(f"Using strategy {p0_strategy.__name__} vs {p1_strategy.__name__}")
 
-    for strategy in p0_strategies_list:
-        logging.debug(f"Using strategy {strategy.__name__} vs {p1_strategy.__name__}")
+    won_by_player_0, win_rate_player_0 = evaluate(
+        strategy_p0=p0_strategy,
+        strategy_p1=p1_strategy,
+        NUM_MATCHES=num_matches,
+        NIM_SIZE=nim_size,
+        k=k,
+    )
 
-        won_by_player_0, win_rate_player_0 = evaluate(
-            strategy_p0=strategy,
-            strategy_p1=p1_strategy,
-            NUM_MATCHES=num_matches,
-            NIM_SIZE=nim_size,
-            k=k,
-        )
+    won_by_player_1 = num_matches - won_by_player_0
 
-        won_by_player_1 = num_matches - won_by_player_0
+    stat = Statistics(
+        strategy_p0_name=p0_strategy.__name__,
+        strategy_p1_name=p1_strategy.__name__,
+        nr_wins_player0=won_by_player_0,
+        nr_wins_player1=won_by_player_1,
+        win_rate_player0=win_rate_player_0,
+    )
 
-        statistics_list.append(
-            Statistics(
-                strategy_name=strategy.__name__,
-                nr_wins_player0=won_by_player_0,
-                nr_wins_player1=won_by_player_1,
-                win_rate_player0=win_rate_player_0,
-            )
-        )
+    logging.debug(
+        f"\nNUM MATCHES={num_matches}, K={k}, using "
+        f"{stat.strategy_p0_name}' vs '{stat.strategy_p1_name}':\n"
+        f"Nr wins Player 0: {stat.nr_wins_player0} |\n"
+        f"Nr wins Player 1: {stat.nr_wins_player1} |\n"
+        f"Win Rate plyer 0 {stat.win_rate_player0} |\n\n"
+    )
 
-    for stat in statistics_list:
-        logging.info(
-            f"\nNUM MATCHES={num_matches}, K={k}, using '{stat.strategy_name}' vs '{p1_strategy.__name__}':\n"
-            f"Nr wins Player 0: {stat.nr_wins_player0} |\n"
-            f"Nr wins Player 1: {stat.nr_wins_player1} |\n"
-            f"Win Rate plyer 0 {stat.win_rate_player0} |\n\n"
-        )
-
-    return win_rate_player_0
+    return stat
