@@ -1,9 +1,12 @@
+import copy
 import inspect
 import logging
+import math
 import random
 from abc import ABC as AbstractClass
 from copy import deepcopy
 from dataclasses import dataclass
+from functools import cache
 from itertools import accumulate
 from operator import and_, xor
 from typing import Callable, NamedTuple
@@ -32,6 +35,7 @@ class Nim:
     def __init__(self, num_rows: int, k: int = None) -> None:
         self._rows = [i * 2 + 1 for i in range(num_rows)]
         self._k = k
+        self._last_move: Nimply = None  # save the move that brings to the current state
 
     def __bool__(self):
         return sum(self._rows) > 0
@@ -42,19 +46,33 @@ class Nim:
     def __repr__(self):
         return self.__str__()
 
+    def __eq__(self, other):
+        return self.rows == other.rows
+
+    def __lt__(self, other):
+        return self.rows < other.rows
+
+    def __gt__(self, other):
+        return self.rows > other.rows
+
     @property
     def rows(self) -> tuple:
         return tuple(self._rows)
+
+    def __hash__(self) -> int:
+        return hash(bytes(self.rows))
 
     @property
     def k(self) -> int:
         return self._k
 
-    def nimming(self, ply: Nimply) -> None:
+    def nimming(self, ply: Nimply) -> "Nim":
         row, num_objects = ply
         assert self._rows[row] >= num_objects
         assert self._k is None or num_objects <= self._k
         self._rows[row] -= num_objects
+        self._last_move = ply
+        return self
 
 
 def gabriele(state: Nim) -> Nimply:
@@ -141,7 +159,7 @@ class BaseStrategies(AbstractClass):
 
 
 @dataclass
-class Player0Strategies(BaseStrategies):
+class Player0HardCodedStrategies(BaseStrategies):
     """Possible hard coded strategies of our player"""
 
     def take_k_from_odd_row_strategy(self, state: Nim) -> Nimply:
@@ -269,6 +287,81 @@ class Player1Strategies(BaseStrategies):
             (bf for bf in brute_force if bf[1] == 0 and bf[0].num_objects <= self.k),
             random.choice(brute_force),
         )[0]
+
+
+@dataclass
+class Player0MinMaxStrategy(BaseStrategies):
+    def min_max_strategy(self, state: Nim, max_depth: int = math.inf) -> Nimply:
+
+        @cache
+        def minimax(
+            state: Nim,
+            is_maximizing: bool,
+            max_depth: int,
+            alpha=-1,
+            beta=1,
+            depth_reached=0,
+        ):
+
+            if (score := evaluate(state.rows, is_maximizing)) is not None:
+                return score
+
+            possible_moves = cook_status(state)["possible_moves"]
+
+            scores = []
+            for new_state in possible_new_states(state, possible_moves):
+                depth_reached = depth_reached  # + 1
+                score = minimax(
+                    new_state,
+                    is_maximizing=not is_maximizing,
+                    max_depth=max_depth,
+                    alpha=alpha,
+                    beta=beta,
+                    depth_reached=depth_reached,
+                )
+                scores.append(score)
+
+                if is_maximizing:
+                    alpha = max(alpha, score)
+                else:
+                    beta = min(beta, score)
+                if beta <= alpha:
+                    break
+
+                if depth_reached >= max_depth:
+                    logging.debug("Min Max depth bound reached")
+                    break
+
+            return (max if is_maximizing else min)(scores)
+
+        def best_move(state: Nim, possible_moves: list[Nimply], max_depth: int):
+            return max(
+                (
+                    minimax(new_state, is_maximizing=False, max_depth=max_depth),
+                    new_state,
+                )
+                for new_state in possible_new_states(state, possible_moves)
+            )
+
+        def possible_new_states(state, possible_moves: list[Nimply]):
+            for move in possible_moves:
+                new_state: Nim = copy.deepcopy(state)
+                yield new_state.nimming(ply=move)
+
+        def evaluate(rows, is_maximizing):
+            # no more element in any row (state.rows == [0, 0, 0, ..., 0])
+            if all(counters == 0 for counters in rows):
+                return -1 if is_maximizing else 1
+
+        data = cook_status(state)
+
+        best_move_ = best_move(
+            state=state, possible_moves=data["possible_moves"], max_depth=max_depth
+        )[1]._last_move
+
+        logging.debug(minimax.cache_info())
+
+        return best_move_
 
 
 def evaluate(

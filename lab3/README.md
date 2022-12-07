@@ -4,6 +4,8 @@
 - [Run The Script](#run-the-script)
 - [Task 1 - hard coded strategies](#task-1---hard-coded-strategies)
 - [Task 2 - Evolved Strategy](#task-2---evolved-strategy)
+- [Task 3 - Min Max Strategy](#task-3---min-max-strategy)
+- [Task 4 - Reinforcement Learning](#task-4---reinforcement-learning)
 
 ### [Set Up Environment](#set-up-environment)
 
@@ -234,3 +236,10 @@ These are the results of playing against the NimSum.
 ]
 ```
 
+### [Task 3 - Min Max Strategy](#task-3---min-max-strategy)
+
+The strategy was implemented taking inspiration from the following article https://realpython.com/python-minimax-nim.
+
+It was implemented the version with alpha-beta pruning with additional possibility to set a depth bound.
+
+### [Task 4 - Reinforcement Learning](#task-4---reinforcement-learning)

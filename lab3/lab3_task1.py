@@ -3,12 +3,8 @@ import sys
 
 sys.path.append(".")
 
-from lab3.utils import (
-    Player0Strategies,
-    Player1Strategies,
-    Statistics,
-    play_nim,
-)
+from lab3.utils import (Player0HardCodedStrategies, Player1Strategies,
+                        Statistics, play_nim)
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -20,7 +16,7 @@ if __name__ == "__main__":
     K = 3
 
     p1_strategies = Player1Strategies(k=K)
-    p0_strategies = Player0Strategies(k=K)
+    p0_strategies = Player0HardCodedStrategies(k=K)
 
     p1_strategy = p1_strategies.pure_random_strategy
     p1_strategy = p1_strategies.optimal_strategy

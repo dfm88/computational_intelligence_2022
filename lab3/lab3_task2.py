@@ -1,10 +1,9 @@
-import logging
-
 # logging.basicConfig(
 #     level=logging.DEBUG,
 #     handlers=[logging.FileHandler("debug3.log"), logging.StreamHandler()],
 # )
 import functools
+import logging
 import operator
 import random
 import sys
@@ -14,12 +13,8 @@ from typing import Callable
 
 sys.path.append(".")
 
-from lab3.utils import (
-    Player0Strategies,
-    Player1Strategies,
-    Statistics,
-    play_nim,
-)
+from lab3.utils import (Player0HardCodedStrategies, Player1Strategies,
+                        Statistics, play_nim)
 
 
 @dataclass
@@ -175,7 +170,7 @@ if __name__ == "__main__":
     NUM_GENERATIONS = 50
 
     p1_strategies = Player1Strategies(k=K)
-    p0_strategies = Player0Strategies(k=K)
+    p0_strategies = Player0HardCodedStrategies(k=K)
 
     p1_strategy = p1_strategies.pure_random_strategy
     p1_strategy = p1_strategies.optimal_strategy
