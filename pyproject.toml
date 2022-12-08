@@ -15,6 +15,7 @@ isort = "^5.10.1"
 black = "^22.10.0"
 memory-profiler = "^0.60.0"
 ipykernel = "^6.17.1"
+matplotlib = "^3.6.2"
 
 [tool.poetry.group.dev.dependencies]
 black = {version = "^22.10.0", allow-prereleases = true}
