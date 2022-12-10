@@ -1,10 +1,12 @@
 import numpy as np
 
-ACTIONS = {'U': (-1, 0), 'D': (1, 0), 'L': (0, -1), 'R': (0, 1)}
+ACTIONS = {"U": (-1, 0), "D": (1, 0), "L": (0, -1), "R": (0, 1)}
 
 
 class Agent(object):
-    def __init__(self, states, alpha=0.15, random_factor=0.2):  # 80% explore, 20% exploit
+    def __init__(
+        self, states, alpha=0.15, random_factor=0.2
+    ):  # 80% explore, 20% exploit
         self.state_history = [((0, 0), 0)]  # state, reward
         self.alpha = alpha
         self.random_factor = random_factor
@@ -39,13 +41,16 @@ class Agent(object):
         self.state_history.append((state, reward))
 
     def learn(self):
-        # all rewards are negatives, the ideal 
-        # reward is 0 that is when the robot 
+        # all rewards are negatives, the ideal
+        # reward is 0 that is when the robot
         # exits from the maze
         target = 0
 
+        # for NIM here we can use nim-sum
+        # to check which strategy gives better reward
         for prev, reward in reversed(self.state_history):
             # all previous rewards + alpha * future
+
             self.G[prev] = self.G[prev] + self.alpha * (target - self.G[prev])
             target += reward
 

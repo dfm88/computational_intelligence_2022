@@ -243,3 +243,36 @@ The strategy was implemented taking inspiration from the following article https
 It was implemented the version with alpha-beta pruning with additional possibility to set a depth bound.
 
 ### [Task 4 - Reinforcement Learning](#task-4---reinforcement-learning)
+
+It was added to `lab3/utils.py` file a `class RLAgent` that represents the agent and a `class Player0ReinforcementLearning`.
+
+The general approach was to let the agent play Nim vs himself and using the NimSum Optimal strategy to give a reward on the agent moves.
+
+The rewards are the following:
+
+* **1.0** if the agent choose the best move (Nim Sum is 0)
+* **0.3** if the agent didn't choose the best Nim Sum move, but it was not possible from that state to make a Nim Sum move
+* **0.0** if the agent didn't choose the best Nim Sum move, and it was not possible from that state to make a Nim Sum move  
+
+The agent was trained over 5000 episodes with a random factor of 20% and alpha set to 15%.
+
+For performance reasons, the agent is only trained on the first game, over all the episodes, than the following games are made exploiting the training on the first game. This behavior is parametrized by the boolean Agent attribute `trained` that is set to true after the training on the first game. 
+
+Here some results 
+
+* VS Optimal Strategy
+
+    ```
+    NUM MATCHES=50, K=3, using reinforcement_learning_strategy' vs 'optimal_strategy':
+    Nr wins Player 0: 4 |
+    Nr wins Player 1: 46 |
+    Win Rate plyer 0 0.08 |
+    ```
+
+* VS Random Strategy
+
+    ```
+    Nr wins Player 0: 20 |
+    Nr wins Player 1: 30 |
+    Win Rate plyer 0 0.4 |
+    ```

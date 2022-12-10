@@ -1,6 +1,7 @@
 import numpy as np
 
-ACTIONS = {'U': (-1, 0), 'D': (1, 0), 'L': (0, -1), 'R': (0, 1)}
+ACTIONS = {"U": (-1, 0), "D": (1, 0), "L": (0, -1), "R": (0, 1)}
+
 
 class Maze(object):
     def __init__(self):
@@ -17,19 +18,19 @@ class Maze(object):
         self.construct_allowed_states()
 
     def print_maze(self):
-        print('---------------------------------')
+        print("---------------------------------")
         for row in self.maze:
             for col in row:
                 if col == 0:
-                    print(' 0 ', end="") # empty space
+                    print(" 0 ", end="")  # empty space
                 elif col == 1:
-                    print(' X ', end="") # walls
+                    print(" X ", end="")  # walls
                 elif col == 2:
-                    print(' R ', end="") # robot position
+                    print(" R ", end="")  # robot position
                 elif col == -1:
-                    print(' E ', end="")
+                    print(" E ", end="")
             print("\n")
-        print('---------------------------------')
+        print("---------------------------------")
 
     def is_allowed_move(self, state: tuple[int, int], action: str):
         # check allowed move from a given state
@@ -50,22 +51,22 @@ class Maze(object):
         for y, row in enumerate(self.maze):
             for x, col in enumerate(row):
                 # iterate through all spaces
-                if self.maze[(y,x)] != 1:
+                if self.maze[(y, x)] != 1:
                     # if the space is not a wall, add it to the allowed states dictionary
-                    allowed_states[(y,x)] = []
+                    allowed_states[(y, x)] = []
                     for action in ACTIONS:
-                        if self.is_allowed_move((y,x), action) & (action != 0):
-                            allowed_states[(y,x)].append(action)
+                        if self.is_allowed_move((y, x), action) & (action != 0):
+                            allowed_states[(y, x)].append(action)
         self.allowed_states = allowed_states
 
     def update_maze(self, action):
-        y, x = self.robot_position # get current position
-        self.maze[y, x] = 0 # set the current position to 0
-        y += ACTIONS[action][0] # get new position
-        x += ACTIONS[action][1] # get new position
-        self.robot_position = (y, x) # set new position
-        self.maze[y, x] = 2 # set new position
-        self.steps += 1 # add steps
+        y, x = self.robot_position  # get current position
+        self.maze[y, x] = 0  # set the current position to 0
+        y += ACTIONS[action][0]  # get new position
+        x += ACTIONS[action][1]  # get new position
+        self.robot_position = (y, x)  # set new position
+        self.maze[y, x] = 2  # set new position
+        self.steps += 1  # add steps
 
     def is_game_over(self):
         # check if robot in the final position

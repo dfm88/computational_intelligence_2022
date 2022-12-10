@@ -5,14 +5,16 @@
 
 # Same goes for Maze and RLAgent, obviously
 
+import matplotlib.pyplot as plt
 from Maze import Maze
 from RLAgent import Agent
-import matplotlib.pyplot as plt
 
 EPISODES = 5000
 
-if __name__ == '__main__':
-    import ipdb; ipdb.set_trace()
+if __name__ == "__main__":
+    import ipdb
+
+    ipdb.set_trace()
     maze = Maze()
     robot = Agent(maze.maze, alpha=0.1, random_factor=0.4)
     moveHistory = []

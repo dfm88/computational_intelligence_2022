@@ -3,13 +3,16 @@ import inspect
 import logging
 import math
 import random
+import sys
 from abc import ABC as AbstractClass
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cache
 from itertools import accumulate
 from operator import and_, xor
 from typing import Callable, NamedTuple
+
+import numpy as np
 
 logging.getLogger().setLevel(logging.DEBUG)
 # logging.basicConfig(
@@ -66,6 +69,18 @@ class Nim:
     def k(self) -> int:
         return self._k
 
+    def fake_nimming(self, ply: Nimply) -> "Nim":
+        """Like nimming but doesn't make the move
+        on the Self Nim object but simulates it on a copy of it
+        returning what would be the new state if that move was done"""
+        row, num_objects = ply
+        assert self._rows[row] >= num_objects
+        assert self._k is None or num_objects <= self._k
+        new_nim = deepcopy(self)
+        new_nim._rows[row] -= num_objects
+        new_nim._last_move = ply
+        return new_nim
+
     def nimming(self, ply: Nimply) -> "Nim":
         row, num_objects = ply
         assert self._rows[row] >= num_objects
@@ -118,14 +133,16 @@ def cook_status(state: Nim) -> dict:
         for x in cooked["possible_moves"]
         if (x.row % 2) == 0
     ]
+
+    index_amount_row = [x for x in enumerate(state.rows) if x[1] > 0]
     # row with less elements
-    cooked["shortest_row"] = min(
-        (x for x in enumerate(state.rows) if x[1] > 0), key=lambda y: y[1]
-    )[0]
+    cooked["shortest_row"] = (
+        min(index_amount_row, key=lambda y: y[1])[0] if index_amount_row else []
+    )
     # row with more elements
-    cooked["longest_row"] = max((x for x in enumerate(state.rows)), key=lambda y: y[1])[
-        0
-    ]
+    cooked["longest_row"] = (
+        max(index_amount_row, key=lambda y: y[1])[0] if index_amount_row else []
+    )
     cooked["nim_sum"] = nim_sum(state)
 
     cooked["and_bitwise"] = and_bitwise(state)
@@ -292,7 +309,6 @@ class Player1Strategies(BaseStrategies):
 @dataclass
 class Player0MinMaxStrategy(BaseStrategies):
     def min_max_strategy(self, state: Nim, max_depth: int = math.inf) -> Nimply:
-
         @cache
         def minimax(
             state: Nim,
@@ -362,6 +378,181 @@ class Player0MinMaxStrategy(BaseStrategies):
         logging.debug(minimax.cache_info())
 
         return best_move_
+
+
+@dataclass
+class RLAgent:
+    state_history: list[tuple[Nim, float]] = field(
+        default_factory=list
+    )  # state, reward
+    alpha: float = 0.15  # 0.15
+    random_factor: float = 0.2  # 60% explore, 40% exploit
+    G: dict[Nim, float] = field(default_factory=dict)  # state, reward
+    trained: bool = False
+
+
+@dataclass
+class Player0ReinforcementLearning(BaseStrategies):
+
+    nim_size: int
+    rl_agent: RLAgent
+
+    def reinforcement_learning_strategy(
+        self,
+        state: Nim,
+        episodes: int,
+    ) -> Nimply:
+        sys.setrecursionlimit(10000)
+
+        def possible_new_states(state: Nim, possible_moves: list[Nimply]):
+            for move in possible_moves:
+                new_state = state.fake_nimming(move)
+                yield new_state
+
+        def choose_action(state: Nim, possible_moves: list[Nimply]) -> Nimply:
+            maxG = -10e15
+            next_move = None
+            randomN = np.random.random()
+            # EXPLORATION == CHOOSE RANDOM ACTION
+            if randomN < self.rl_agent.random_factor:
+                # if random number below random factor, choose random action
+                next_move = random.choice(possible_moves)
+            # EXPLOITATION == TAKE ACTION WITH GRATER EXPECTED REWARD
+            else:
+                # if exploiting, gather all possible actions and choose one with the highest G (reward)
+                for action in possible_moves:
+                    new_state = state.fake_nimming(action)
+                    if self.rl_agent.G[new_state] >= maxG:
+                        next_move = action
+                        maxG = self.rl_agent.G[new_state]
+            return next_move
+
+        def update_state_history(state: Nim, reward: float) -> list[tuple[Nim, float]]:
+            self.rl_agent.state_history.append((deepcopy(state), reward))
+
+        def get_reward_from_action(
+            state: Nim, action: Nimply, possible_moves: list[Nimply]
+        ) -> float:
+            # if neither nim sum would have found an optimal
+            # move from the current state, than give reward of 0.3
+            possible_next_state = state.fake_nimming(action)
+
+            if nim_sum(state=possible_next_state) != 0:
+                return 0.3
+
+            # if the action chosen is one of the
+            # action with nim-sum == 0 then reward is 1
+            for move in possible_moves:
+                new_fake_state = state.fake_nimming(move)
+                if nim_sum(state=new_fake_state) == 0:
+                    if action == move:
+                        return 1.0
+
+            # else, if it was possible to make an optimal
+            # nim-sum move from that state but the agent did't
+            # choose that action, than give no reward
+            return 0.0
+
+        def update_G(current_state: Nim, states: list[Nim]):
+            
+            # mapping state-random reward to be adjusted during game
+            self.rl_agent.G[current_state] = np.random.uniform(low=1.0, high=0.1)
+            for state in states:
+                self.rl_agent.G[state] = np.random.uniform(low=1.0, high=0.1)
+
+
+        def learn(target: int):
+
+            for prev, reward in reversed(self.rl_agent.state_history):
+                # all previous rewards + alpha * future
+
+                self.rl_agent.G[prev] = self.rl_agent.G.get(
+                    prev, 0.0
+                ) + self.rl_agent.alpha * (target - self.rl_agent.G.get(prev, 0.0))
+
+                target += reward
+
+            self.rl_agent.state_history = []
+
+            # decrease random factor each episode of play
+            self.rl_agent.random_factor -= 10e-5
+
+        def game_is_over(state):
+            return all(_ == 0 for _ in state.rows)
+
+        state = deepcopy(state)
+        data = cook_status(state)
+        possible_moves_list: list[Nimply] = data["possible_moves"]
+
+        # the target is having a reward of 1
+        # for every possible move
+        target = len(possible_moves_list)
+
+        # all possible states from the current one
+        states: list[Nim] = [
+            x for x in possible_new_states(state, possible_moves=possible_moves_list)
+        ]
+        steps = 0
+
+        # mapping (state, random reward) to be adjusted during game
+        update_G(current_state=state, states=states)
+
+
+        # for i in range(episodes):
+        if episodes > 0 and not self.rl_agent.trained:
+            logging.debug("epis %s" % episodes)
+
+            # while game is active (some rows has some sticks)
+            while not game_is_over(state=state):
+                steps += 1
+                if steps >= 1000:
+                    logging.info("Too many steps...")
+                    break
+
+                action = choose_action(state=state, possible_moves=possible_moves_list)
+
+                reward = get_reward_from_action(
+                    state=state, action=action, possible_moves=possible_moves_list
+                )
+
+                # update the Nim board state according to the action
+                new_state = state.nimming(ply=action)
+                data = cook_status(new_state)
+                possible_moves_list: list[Nimply] = data["possible_moves"]
+                states: list[Nim] = [
+                    x
+                    for x in possible_new_states(
+                        state, possible_moves=possible_moves_list
+                    )
+                ]
+                update_G(current_state=new_state, states=states)
+
+                update_state_history(state=new_state, reward=reward)
+
+            learn(target=target)
+
+            return self.reinforcement_learning_strategy(
+                state=Nim(num_rows=self.nim_size, k=self.k), episodes=episodes - 1
+            )
+
+        # Agent is trained over all episodes only
+        # during first game, then it already has the 
+        # list of possible best moves
+        self.rl_agent.trained = True
+
+        # return the action that has best reward after training
+        reward_for_move = 0.0
+        for move in data["possible_moves"]:
+            fake_state = state.fake_nimming(move)
+            reward = self.rl_agent.G[fake_state]
+            if reward > reward_for_move:
+                reward_for_move = reward
+                best_move = move
+
+        
+        logging.debug(f"best move {best_move}")
+
+        return best_move
 
 
 def evaluate(

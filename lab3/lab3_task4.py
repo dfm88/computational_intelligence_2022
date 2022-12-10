@@ -4,26 +4,36 @@ import sys
 
 sys.path.append(".")
 
-from lab3.utils import Player0MinMaxStrategy, Player1Strategies, Statistics, play_nim
+from lab3.utils import (
+    Player0ReinforcementLearning,
+    Player1Strategies,
+    RLAgent,
+    Statistics,
+    play_nim,
+)
 
 logging.getLogger().setLevel(logging.DEBUG)
 
 
 if __name__ == "__main__":
 
-    NUM_MATCHES = 20
-    NIM_SIZE = 5
+    NUM_MATCHES = 50
+    NIM_SIZE = 6
     K = 3
 
-    MAX_DEPTH = 20
+    EPISODES = 5000
 
     p1_strategies = Player1Strategies(k=K)
-    p0_strategies = Player0MinMaxStrategy(k=K)
+    p0_strategies = Player0ReinforcementLearning(
+        k=K, nim_size=NIM_SIZE, rl_agent=RLAgent()
+    )
 
     p1_strategy = p1_strategies.pure_random_strategy
     p1_strategy = p1_strategies.optimal_strategy
 
-    p0_strategy = functools.partial(p0_strategies.min_max_strategy, max_depth=MAX_DEPTH)
+    p0_strategy = functools.partial(
+        p0_strategies.reinforcement_learning_strategy, episodes=EPISODES
+    )
     p0_strategy.__name__ = p0_strategy.func.__name__
 
     game_stat: Statistics = play_nim(

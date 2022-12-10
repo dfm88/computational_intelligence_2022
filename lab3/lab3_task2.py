@@ -13,8 +13,12 @@ from typing import Callable
 
 sys.path.append(".")
 
-from lab3.utils import (Player0HardCodedStrategies, Player1Strategies,
-                        Statistics, play_nim)
+from lab3.utils import (
+    Player0HardCodedStrategies,
+    Player1Strategies,
+    Statistics,
+    play_nim,
+)
 
 
 @dataclass
