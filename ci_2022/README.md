@@ -8,3 +8,7 @@
 ### lab2 
  
 * https://github.com/md131376st/computational-intelligen-2022/issues/2
+
+### lab3
+
+* https://github.com/EnricoMagliano/computational-intelligence/issues/7
